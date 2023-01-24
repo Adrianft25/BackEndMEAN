@@ -4,6 +4,8 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
+let cartas = [];
+
 // Habilitar CORS
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -20,13 +22,18 @@ app.get("/", (req, res) => {
 });
 
 app.get("/cartas", async (req, res) => {
-  const cartas = await yugiohApi.getAllCartas();
-  res.send(cartas);
+  const cartasTmp =
+    cartas.length === 0 ? (await yugiohApi.getAllCartas()).data : cartas;
+  if (cartas.length === 0) cartas = cartasTmp;
+  //console.log(cartasTmp?.data.length);
+  res.send(cartasTmp ?? []);
 });
 
-app.get("/cartas/carta", (req, res) => {
-    res.send("Hello World!");
-  });
+app.get("/cartas/carta/:id", async (req, res) => {
+  const cartaId = req.params.id;
+  if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
+  res.send(cartas.find((carta) => carta.id == cartaId));
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
