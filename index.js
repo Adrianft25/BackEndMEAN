@@ -25,8 +25,11 @@ app.get("/cartas", async (req, res) => {
   const cartasTmp =
     cartas.length === 0 ? (await yugiohApi.getAllCartas()).data : cartas;
   if (cartas.length === 0) cartas = cartasTmp;
-  //console.log(cartasTmp?.data.length);
-  res.send(cartasTmp ?? []);
+
+  // res.send(cartasTmp ?? []);
+  // ! TODO: datos temporales
+  res.send(cartasTmp.slice(15, 59) ?? []);
+
 });
 
 app.get("/cartas/carta/:id", async (req, res) => {
