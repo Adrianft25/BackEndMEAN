@@ -1,10 +1,17 @@
 const yugiohApi = require("./yugiohAPI");
+const db = require("./db");
 
+const admin = require("firebase-admin");
 const express = require("express");
 const app = express();
 const port = 3000;
 
 let cartas = [];
+
+// Confuguración Express
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+app.set("view engine", "ejs");
 
 // Habilitar CORS
 app.use(function (req, res, next) {
@@ -17,7 +24,15 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  
+  const docRef = db.collection('prueba').doc('alovelace');
+
+  await docRef.set({
+    first: 'Ada',
+    last: 'Lovelace',
+    born: 1815
+  });
   res.send("Hello World!");
 });
 
