@@ -1,6 +1,7 @@
 const yugiohApi = require("./yugiohAPI");
 const db = require("./db");
 
+const bodyParser = require("body-parser");
 const admin = require("firebase-admin");
 const express = require("express");
 const app = express();
@@ -8,10 +9,11 @@ const port = 3000;
 
 let cartas = [];
 
-// Confuguración Express
+// Configuración Express
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+app.use(bodyParser.json());
 
 // Habilitar CORS
 app.use(function (req, res, next) {
@@ -52,6 +54,18 @@ app.get("/cartas/carta/:id", async (req, res) => {
   if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
   res.send(cartas.find((carta) => carta.id == cartaId));
 });
+
+/**
+ * ---------------------------------------
+ * ---------------------------------------
+ * --------- MANEJO DE SESIONES ----------
+ * ---------------------------------------
+ * ---------------------------------------
+ *  */ 
+app.post('/auth/login', function(req, res){
+  console.log(req.body);
+  res.status(200).json({token: "U55XmHlWId4NStGuN15j5b^3Cspna9uYU98!2Dd55&%3V$I@oB"});
+}); 
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
