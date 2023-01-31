@@ -1,8 +1,9 @@
 const yugiohApi = require("./yugiohAPI");
-const db = require("./db");
+//const auth = require("./auth");
+const miFirebase = require("./firebase");
 
 const bodyParser = require("body-parser");
-const admin = require("firebase-admin");
+const authFirebase = require("firebase/auth");
 const express = require("express");
 const app = express();
 const port = 3000;
@@ -27,13 +28,12 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", async (req, res) => {
-  
-  const docRef = db.collection('prueba').doc('alovelace');
+  const docRef = miFirebase.db.collection("prueba").doc("alovelace");
 
   await docRef.set({
-    first: 'Ada',
-    last: 'Lovelace',
-    born: 1815
+    first: "Ada",
+    last: "Lovelace",
+    born: 1815,
   });
   res.send("Hello World!");
 });
@@ -46,7 +46,6 @@ app.get("/cartas", async (req, res) => {
   // res.send(cartasTmp ?? []);
   // ! TODO: datos temporales
   res.send(cartasTmp.slice(15, 59) ?? []);
-
 });
 
 app.get("/cartas/carta/:id", async (req, res) => {
@@ -61,11 +60,21 @@ app.get("/cartas/carta/:id", async (req, res) => {
  * --------- MANEJO DE SESIONES ----------
  * ---------------------------------------
  * ---------------------------------------
- *  */ 
-app.post('/auth/login', function(req, res){
+ *  */
+app.post("/auth/login", function (req, res) {
   console.log(req.body);
-  res.status(200).json({token: "U55XmHlWId4NStGuN15j5b^3Cspna9uYU98!2Dd55&%3V$I@oB"});
-}); 
+  res
+    .status(200)
+    .json({ token: "U55XmHlWId4NStGuN15j5b^3Cspna9uYU98!2Dd55&%3V$I@oB" });
+});
+
+app.post("/auth/registro", function (req, res) {
+  const { email, passwd } = req.body;
+  console.log({ email, passwd });
+
+  miFirebase.registro(email, passwd);
+  
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
