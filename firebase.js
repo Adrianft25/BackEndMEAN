@@ -1,34 +1,22 @@
-var admin = require("firebase-admin");
-const authFirebase = require("firebase/auth");
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
 
-var serviceAccount = require("./serviceAccountKey.json");
-
-module.exports = admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+const app = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
-//const auth = authFirebase.getAuth();
-const auth = admin.auth();
+const auth = admin.auth(app);
 
-const registro = (email, passwd) => {
-
-  authFirebase
-    .createUserWithEmailAndPassword(firebase.auth, email, passwd)
-    .then((userCredential) => {
-      // Signed in
-      console.log(userCredential);
-      const user = userCredential.user;
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log({errorCode, errorMessage});
-      // ..
+const registroEmailPassword = (email, passwd) => {
+    return auth.createUser({
+        email,
+        emailVerified: false,
+        password: passwd,
+        photoURL: "http://t2.gstatic.com/licensed-image?q=tbn:ANd9GcQPjutZ9txmd5DBd_DK_pLRo5eMWVHq5MpZBgAxYi6EGXfdv2cj53_zbNR8VZH932q9",
+        disabled: false,
     });
-}
+};
 
 exports.db = db;
-exports.auth = auth;
-exports.registro = registro;
+exports.registroEmailPassword = registroEmailPassword;
