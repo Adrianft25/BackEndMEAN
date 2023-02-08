@@ -32,18 +32,15 @@ app.use(bodyParser.json());
 
 // Habilitar CORS
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization"
-  );
-  next();
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+    next();
 });
 
 // Puerto de escucha
 app.listen(port, () => {
-  console.log(`Aplicación funcionando por el puerto: ${port}`);
+    console.log(`Aplicación funcionando por el puerto: ${port}`);
 });
 
 /**
@@ -58,7 +55,7 @@ app.listen(port, () => {
 
 // Root
 app.get("/", (req, res) => {
-  /*if (cartas.length > 0) {
+    /*if (cartas.length > 0) {
     const docCol = db.collection("almacen");
     cartas.forEach(async carta => {
       const stock = Math.floor(Math.random() * 100);
@@ -71,7 +68,7 @@ app.get("/", (req, res) => {
     });
   }*/
 
-  /* consulta para recuperar los docs de Almacén, 
+    /* consulta para recuperar los docs de Almacén, 
   
   hacer ForEach de los resultados,
 
@@ -85,7 +82,7 @@ app.get("/", (req, res) => {
   }
   */
 
-  res.send("Hola");
+    res.send("Hola");
 });
 
 // #endregion
@@ -102,30 +99,30 @@ app.get("/", (req, res) => {
 
 // Obtener cartas
 app.get("/cartas", async (req, res) => {
-  let cartasTmp =
-    cartas.length === 0 ? (await yugiohApi.getAllCartas()).data : cartas;
-  if (cartas.length === 0) cartas = cartasTmp;
-  cartasTmp = await mapeoStockCartas();
-  // res.send(cartasTmp ?? []);
-  // ! TODO: datos temporales
-  res.send(cartasTmp.slice(15, 59) ?? []);
+    if (cartas.length === 0) {
+        const cartasTmp = await yugiohApi.getAllCartas();
+        cartas = await mapeoStockCartas(cartasTmp);
+    }
+
+    // ! TODO: datos temporales
+    res.send([...cartas].slice(15, 59) ?? []);
 });
 
-async function mapeoStockCartas() {
-  const docCol = await db.collection("almacen").get();
-  let docsStockCartas = docCol.docs.map((doc) => doc.data());
-  cartas = cartas.map((carta) => {
-    const stockCarta = docsStockCartas.find((doc) => doc.id == carta.id);
-    return { ...carta, stock: stockCarta.stock };
-  });
-  return cartas;
+async function mapeoStockCartas(cartasTmp) {
+    const docCol = await db.collection("almacen").get();
+    let docsStockCartas = docCol.docs.map((doc) => doc.data());
+    cartasTmp = cartasTmp.map((carta) => {
+        const stockCarta = docsStockCartas.find((doc) => doc.id == carta.id);
+        return { ...carta, stock: stockCarta.stock };
+    });
+    return cartasTmp;
 }
 
 // Obtener carta por id
 app.get("/cartas/carta/:id", async (req, res) => {
-  const cartaId = req.params.id;
-  if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
-  res.send(cartas.find((carta) => carta.id == cartaId));
+    const cartaId = req.params.id;
+    if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
+    res.send(cartas.find((carta) => carta.id == cartaId));
 });
 
 // #endregion
@@ -142,44 +139,40 @@ app.get("/cartas/carta/:id", async (req, res) => {
 
 // LOGIN
 app.post("/auth/login", function (req, res) {
-  console.log(req.body);
-  const { email, passwd } = req.body;
-  loginEmailPassword(email, passwd)
-    .then(async (userCredential) => {
-      // ! TODO: Enviar TOKEN
-      res.status(200).json(userCredential);
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      res
-        .status(500)
-        .json({ error: "algo ha salido mal", errorCode, errorMessage });
-    });
+    console.log(req.body);
+    const { email, passwd } = req.body;
+    loginEmailPassword(email, passwd)
+        .then(async (userCredential) => {
+            // ! TODO: Enviar TOKEN
+            res.status(200).json(userCredential);
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            res.status(500).json({ error: "algo ha salido mal", errorCode, errorMessage });
+        });
 });
 
 // REGISTRO
 app.post("/auth/registro", function (req, res) {
-  const { email, passwd } = req.body;
-  registroEmailPassword(email, passwd)
-    .then(async (userCredential) => {
-      const docRef = db.collection("usuarios").doc(userCredential.uid);
+    const { email, passwd } = req.body;
+    registroEmailPassword(email, passwd)
+        .then(async (userCredential) => {
+            const docRef = db.collection("usuarios").doc(userCredential.uid);
 
-      await docRef.set({
-        email: userCredential.email ?? "",
-        emailVerified: userCredential.emailVerified ?? false,
-        disabled: userCredential.disabled ?? false,
-      });
-      // ! TODO: Enviar TOKEN
-      res.status(200).json(userCredential);
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      res
-        .status(500)
-        .json({ error: "algo ha salido mal", errorCode, errorMessage });
-    });
+            await docRef.set({
+                email: userCredential.email ?? "",
+                emailVerified: userCredential.emailVerified ?? false,
+                disabled: userCredential.disabled ?? false,
+            });
+            // ! TODO: Enviar TOKEN
+            res.status(200).json(userCredential);
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            res.status(500).json({ error: "algo ha salido mal", errorCode, errorMessage });
+        });
 });
 
 // #endregion
