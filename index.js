@@ -57,15 +57,35 @@ app.listen(port, () => {
 // #region GET
 
 // Root
-app.get("/", async (req, res) => {
-  const docRef = db.collection("prueba").doc("alovelace");
+app.get("/", (req, res) => {
+  /*if (cartas.length > 0) {
+    const docCol = db.collection("almacen");
+    cartas.forEach(async carta => {
+      const stock = Math.floor(Math.random() * 100);
+      const docRef = docCol.doc(`${carta.id}`);
 
-  await docRef.set({
-    first: "Ada",
-    last: "Lovelace",
-    born: 1815,
-  });
-  res.send("Hello World!");
+      await docRef.set({
+        id: carta.id,
+        stock: stock
+      })
+    });
+  }*/
+
+  /* consulta para recuperar los docs de Almacén, 
+  
+  hacer ForEach de los resultados,
+
+  recorrer todos los items de cartas[],
+
+  bucle for y 
+  
+  {
+    ...carta,
+    stock: cartaDB.stock
+  }
+  */
+
+  res.send("Hola");
 });
 
 // #endregion
@@ -82,14 +102,24 @@ app.get("/", async (req, res) => {
 
 // Obtener cartas
 app.get("/cartas", async (req, res) => {
-  const cartasTmp =
+  let cartasTmp =
     cartas.length === 0 ? (await yugiohApi.getAllCartas()).data : cartas;
   if (cartas.length === 0) cartas = cartasTmp;
-
+  cartasTmp = await mapeoStockCartas();
   // res.send(cartasTmp ?? []);
   // ! TODO: datos temporales
   res.send(cartasTmp.slice(15, 59) ?? []);
 });
+
+async function mapeoStockCartas() {
+  const docCol = await db.collection("almacen").get();
+  let docsStockCartas = docCol.docs.map((doc) => doc.data());
+  cartas = cartas.map((carta) => {
+    const stockCarta = docsStockCartas.find((doc) => doc.id == carta.id);
+    return { ...carta, stock: stockCarta.stock };
+  });
+  return cartas;
+}
 
 // Obtener carta por id
 app.get("/cartas/carta/:id", async (req, res) => {
