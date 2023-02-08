@@ -100,7 +100,7 @@ app.get("/", (req, res) => {
 // Obtener cartas
 app.get("/cartas", async (req, res) => {
     if (cartas.length === 0) {
-        const cartasTmp = await yugiohApi.getAllCartas();
+        const cartasTmp = (await yugiohApi.getAllCartas()).data;
         cartas = await mapeoStockCartas(cartasTmp);
     }
 
