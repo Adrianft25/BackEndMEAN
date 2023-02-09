@@ -1,6 +1,7 @@
 const yugiohApi = require("./yugiohAPI");
 const { db, registroEmailPassword, loginEmailPassword } = require("./firebase");
 
+const fs = require("fs");
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
@@ -15,6 +16,7 @@ const port = 3000;
  */
 
 let cartas = [];
+const ARCHIVO_CARTAS_STOCK_ID = "cartas_stock_id.json";
 
 /**
  * -----------------------------------------------------------------------------
@@ -55,35 +57,27 @@ app.listen(port, () => {
 
 // Root
 app.get("/", (req, res) => {
-    /*if (cartas.length > 0) {
-    const docCol = db.collection("almacen");
-    cartas.forEach(async carta => {
-      const stock = Math.floor(Math.random() * 100);
-      const docRef = docCol.doc(`${carta.id}`);
-
-      await docRef.set({
-        id: carta.id,
-        stock: stock
-      })
-    });
-  }*/
-
-    /* consulta para recuperar los docs de Almacén, 
-  
-  hacer ForEach de los resultados,
-
-  recorrer todos los items de cartas[],
-
-  bucle for y 
-  
-  {
-    ...carta,
-    stock: cartaDB.stock
-  }
-  */
+    // if (cartas.length > 0) addStockCartas();
 
     res.send("Hola");
 });
+
+// Añadir stock aleatorio a cada carta
+async function addStockCartas() {
+    let cartasIdStock = [...cartas];
+    cartasIdStock.map((carta) => {
+        const stock = Math.floor(Math.random() * 100);
+        return {
+            id: carta.id,
+            stock: stock,
+        };
+    });
+
+    fs.writeFile(ARCHIVO_CARTAS_STOCK_ID, JSON.stringify(cartasIdStock), (err) => {
+        if (err) console.log(err);
+        console.log("Escrito con éxito");
+    });
+}
 
 // #endregion
 
@@ -108,11 +102,14 @@ app.get("/cartas", async (req, res) => {
     res.send([...cartas].slice(15, 59) ?? []);
 });
 
+// Añadir a cada carta su stock almacenado en el JSON
 async function mapeoStockCartas(cartasTmp) {
-    const docCol = await db.collection("almacen").get();
-    let docsStockCartas = docCol.docs.map((doc) => doc.data());
+    const cartasIdStockJSON = fs.readFileSync(ARCHIVO_CARTAS_STOCK_ID, "utf-8");
+    let cartasIdStock = JSON.parse(cartasIdStockJSON);
     cartasTmp = cartasTmp.map((carta) => {
-        const stockCarta = docsStockCartas.find((doc) => doc.id == carta.id);
+        const cartaStockIndex = cartasIdStock.findIndex((c) => c.id == carta.id);
+        const stockCarta = cartasIdStock[cartaStockIndex];
+        cartasIdStock.slice[(cartaStockIndex, cartaStockIndex + 1)];
         return { ...carta, stock: stockCarta.stock };
     });
     return cartasTmp;
