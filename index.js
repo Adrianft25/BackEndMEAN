@@ -57,7 +57,7 @@ app.listen(port, () => {
 
 // Root
 app.get("/", (req, res) => {
-     if (cartas.length > 0) addStockCartas();
+    //if (cartas.length > 0) addStockCartas();
 
     res.send("Hola");
 });
@@ -95,8 +95,8 @@ async function addStockCartas() {
 app.get("/cartas", async (req, res) => {
     if (cartas.length === 0) {
         const cartasTmp = (await yugiohApi.getAllCartas()).data;
-        //cartas = await mapeoStockCartas(cartasTmp);
-        cartas = cartasTmp;
+        cartas = await mapeoStockCartas(cartasTmp);
+
     }
 
     // ! TODO: datos temporales
