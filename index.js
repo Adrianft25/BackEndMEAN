@@ -141,8 +141,10 @@ app.post("/auth/login", function (req, res) {
     const { email, passwd } = req.body;
     loginEmailPassword(email, passwd)
         .then(async (userCredential) => {
+            const userData = (await db.collection("usuarios").doc(userCredential.uid).get()).data();
+            
             // ! TODO: Enviar TOKEN
-            res.status(200).json(userCredential);
+            res.status(200).json(userData);
         })
         .catch((error) => {
             const errorCode = error.code;
@@ -164,7 +166,11 @@ app.post("/auth/registro", function (req, res) {
                 disabled: userCredential.disabled ?? false,
             });
             // ! TODO: Enviar TOKEN
-            res.status(200).json(userCredential);
+            res.status(200).json({
+                email: userCredential.email ?? "",
+                emailVerified: userCredential.emailVerified ?? false,
+                disabled: userCredential.disabled ?? false,
+            });
         })
         .catch((error) => {
             const errorCode = error.code;
@@ -172,5 +178,6 @@ app.post("/auth/registro", function (req, res) {
             res.status(500).json({ error: "algo ha salido mal", errorCode, errorMessage });
         });
 });
+
 
 // #endregion
