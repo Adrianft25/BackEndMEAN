@@ -57,7 +57,7 @@ app.listen(port, () => {
 
 // Root
 app.get("/", (req, res) => {
-    // if (cartas.length > 0) addStockCartas();
+     if (cartas.length > 0) addStockCartas();
 
     res.send("Hola");
 });
@@ -65,7 +65,7 @@ app.get("/", (req, res) => {
 // Añadir stock aleatorio a cada carta
 async function addStockCartas() {
     let cartasIdStock = [...cartas];
-    cartasIdStock.map((carta) => {
+    cartasIdStock = cartasIdStock.map((carta) => {
         const stock = Math.floor(Math.random() * 100);
         return {
             id: carta.id,
@@ -95,7 +95,8 @@ async function addStockCartas() {
 app.get("/cartas", async (req, res) => {
     if (cartas.length === 0) {
         const cartasTmp = (await yugiohApi.getAllCartas()).data;
-        cartas = await mapeoStockCartas(cartasTmp);
+        //cartas = await mapeoStockCartas(cartasTmp);
+        cartas = cartasTmp;
     }
 
     // ! TODO: datos temporales
