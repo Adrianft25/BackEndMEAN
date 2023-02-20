@@ -123,6 +123,21 @@ app.get("/cartas/carta/:id", async (req, res) => {
     res.send(cartas.find((carta) => carta.id == cartaId));
 });
 
+// Obtener cartas del carrito
+app.post("/cartas/carrito", async (req, res) => {
+    const itemsCarrito = req.body.itemsCarrito;
+    if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
+    let cartasCarrito = [];
+    for (let i = 0; i < itemsCarrito.length; i++) {
+      const carta = cartas.find((carta) => carta.id == itemsCarrito[i].id);
+      cartasCarrito.push({
+        ...carta,
+        cantidad: itemsCarrito[i].cantidad,
+      });
+    }
+    res.send(cartasCarrito);
+});
+
 // #endregion
 
 /**
@@ -137,7 +152,6 @@ app.get("/cartas/carta/:id", async (req, res) => {
 
 // LOGIN
 app.post("/auth/login", function (req, res) {
-    console.log(req.body);
     const { email, passwd } = req.body;
     loginEmailPassword(email, passwd)
         .then(async (userCredential) => {
