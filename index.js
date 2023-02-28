@@ -96,7 +96,6 @@ app.get("/cartas", async (req, res) => {
     if (cartas.length === 0) {
         const cartasTmp = (await yugiohApi.getAllCartas()).data;
         cartas = await mapeoStockCartas(cartasTmp);
-
     }
 
     // ! TODO: datos temporales
@@ -110,7 +109,7 @@ async function mapeoStockCartas(cartasTmp) {
     cartasTmp = cartasTmp.map((carta) => {
         const cartaStockIndex = cartasIdStock.findIndex((c) => c.id == carta.id);
         const stockCarta = cartasIdStock[cartaStockIndex];
-        cartasIdStock.slice[(cartaStockIndex, cartaStockIndex + 1)];
+        cartasIdStock.splice(cartaStockIndex, 1);
         return { ...carta, stock: stockCarta.stock };
     });
     return cartasTmp;
@@ -136,6 +135,38 @@ app.post("/cartas/carrito", async (req, res) => {
       });
     }
     res.send(cartasCarrito);
+});
+
+app.get("/admin/sync", async (req, res) =>{
+    const cartasAPI = (await yugiohApi.getAllCartas()).data;
+    const fileJSON = fs.readFileSync(ARCHIVO_CARTAS_STOCK_ID, "utf-8");
+    let cartasJSON = JSON.parse(fileJSON);
+
+    if(cartasAPI.length === cartasJSON.length) res.send("son iguales");
+
+    cartasJSON.forEach(cartaJSON => {
+        const cartaAPIIndex = cartasAPI.findIndex((c) => c.id == cartaJSON.id);
+        cartasAPI.splice(cartaAPIIndex, 1);
+    });
+
+    for (let i = 0; i < cartasAPI.length; i++) {
+        const cartaAPI = cartasAPI[i];
+
+        const stock = Math.floor(Math.random() * 100);
+        cartasJSON.push({
+            id: cartaAPI.id,
+            stock: stock,
+        });
+    }
+
+    
+    fs.writeFile(ARCHIVO_CARTAS_STOCK_ID, JSON.stringify(cartasJSON), (err) => {
+        if (err) console.log(err);
+        console.log("escrito con exito");
+    });
+    
+    res.send("datos actualizados");
+
 });
 
 // #endregion
