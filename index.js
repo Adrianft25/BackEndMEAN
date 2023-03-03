@@ -115,9 +115,11 @@ async function mapeoStockCartas(cartasTmp) {
   let cartasIdStock = JSON.parse(cartasIdStockJSON);
   cartasTmp = cartasTmp.map((carta) => {
     const cartaStockIndex = cartasIdStock.findIndex((c) => c.id == carta.id);
-    const stockCarta = cartasIdStock[cartaStockIndex];
-    cartasIdStock.splice(cartaStockIndex, 1);
-    return { ...carta, stock: stockCarta.stock };
+    if (cartaStockIndex > -1) {
+      const stockCarta = cartasIdStock[cartaStockIndex];
+      cartasIdStock.splice(cartaStockIndex, 1);
+      return { ...carta, stock: stockCarta.stock };
+    }
   });
   return cartasTmp;
 }
@@ -149,29 +151,31 @@ app.get("/admin/sync", async (req, res) => {
   const fileJSON = fs.readFileSync(ARCHIVO_CARTAS_STOCK_ID, "utf-8");
   let cartasJSON = JSON.parse(fileJSON);
 
-  if (cartasAPI.length === cartasJSON.length) res.send("son iguales");
-
-  cartasJSON.forEach((cartaJSON) => {
-    const cartaAPIIndex = cartasAPI.findIndex((c) => c.id == cartaJSON.id);
-    cartasAPI.splice(cartaAPIIndex, 1);
-  });
-
-  for (let i = 0; i < cartasAPI.length; i++) {
-    const cartaAPI = cartasAPI[i];
-
-    const stock = Math.floor(Math.random() * 100);
-    cartasJSON.push({
-      id: cartaAPI.id,
-      stock: stock,
+  if (cartasAPI.length === cartasJSON.length) {
+    res.send("son iguales");
+  } else {
+    cartasJSON.forEach((cartaJSON) => {
+      const cartaAPIIndex = cartasAPI.findIndex((c) => c.id == cartaJSON.id);
+      cartasAPI.splice(cartaAPIIndex, 1);
     });
+
+    for (let i = 0; i < cartasAPI.length; i++) {
+      const cartaAPI = cartasAPI[i];
+
+      const stock = Math.floor(Math.random() * 100);
+      cartasJSON.push({
+        id: cartaAPI.id,
+        stock: stock,
+      });
+    }
+
+    fs.writeFile(ARCHIVO_CARTAS_STOCK_ID, JSON.stringify(cartasJSON), (err) => {
+      if (err) console.log(err);
+      console.log("escrito con exito");
+    });
+
+    res.send("datos actualizados");
   }
-
-  fs.writeFile(ARCHIVO_CARTAS_STOCK_ID, JSON.stringify(cartasJSON), (err) => {
-    if (err) console.log(err);
-    console.log("escrito con exito");
-  });
-
-  res.send("datos actualizados");
 });
 
 // #endregion
@@ -269,6 +273,27 @@ app.post("/compra", function (req, res) {
     datosPago: details.payer,
     datosItems: details.purchase_units[0].items,
     total: details.purchase_units[0].amount.value,
+  });
+});
+
+// MOSTRAR FACTURAS DEL USUARIO
+app.get("/facturas", async function (req, res) {
+  const { userId } = req.query;
+  const docUsuario = await db.collection("usuarios").doc(userId).get();
+  const idsFacturas = docUsuario.data().facturas || [];
+  if (idsFacturas.length === 0) {
+    res.send([]);
+    return;
+  }
+  var facturas = [];
+  for (let i = 0; i < idsFacturas.length; i++) {
+    const idFactura = idsFacturas[i];
+    const docFactura = await db.collection("facturas").doc(idFactura).get();
+    facturas.push(docFactura.data());
+  }
+
+  res.status(200).json({
+    facturas: facturas,
   });
 });
 
