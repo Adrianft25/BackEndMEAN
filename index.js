@@ -277,23 +277,24 @@ app.post("/compra", function (req, res) {
 });
 
 // MOSTRAR FACTURAS DEL USUARIO
-app.get("/facturas", async function (req, res) {
-  const { userId } = req.query;
-  const docUsuario = await db.collection("usuarios").doc(userId).get();
-  const idsFacturas = docUsuario.data().facturas || [];
-  if (idsFacturas.length === 0) {
-    res.send([]);
-    return;
-  }
-  var facturas = [];
-  for (let i = 0; i < idsFacturas.length; i++) {
-    const idFactura = idsFacturas[i];
-    const docFactura = await db.collection("facturas").doc(idFactura).get();
-    facturas.push(docFactura.data());
+app.post("/facturas", async function (req, res) {
+  const { userId } = req.body;
+
+  let idFacturas = [];
+
+  const docRefUsuarios = db.collection("usuarios").doc(userId);
+
+  idFacturas = (await docRefUsuarios.get()).data().facturas || [];
+
+  let facturas = [];
+
+  for (let i = 0; i < idFacturas.length; i++) {
+    const factura = db.collection("facturas").doc(idFacturas[i]);
+    facturas.push(await factura.get());
   }
 
   res.status(200).json({
-    facturas: facturas,
+    facturas: facturas
   });
 });
 
