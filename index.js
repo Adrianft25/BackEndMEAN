@@ -128,7 +128,7 @@ async function mapeoStockCartas(cartasTmp) {
 app.get("/cartas/carta/:id", async (req, res) => {
   const cartaId = req.params.id;
   if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
-  res.send(cartas.find((carta) => carta.id == cartaId));
+  res.send(cartas.find((carta) => carta?.id == cartaId));
 });
 
 // Obtener cartas del carrito
@@ -137,7 +137,7 @@ app.post("/cartas/carrito", async (req, res) => {
   if (cartas.length === 0) cartas = (await yugiohApi.getAllCartas()).data;
   let cartasCarrito = [];
   for (let i = 0; i < itemsCarrito.length; i++) {
-    const carta = cartas.find((carta) => carta.id == itemsCarrito[i].id);
+    const carta = cartas.find((carta) => carta?.id == itemsCarrito[i].id);
     cartasCarrito.push({
       ...carta,
       cantidad: itemsCarrito[i].cantidad,
