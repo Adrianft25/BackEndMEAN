@@ -178,6 +178,13 @@ app.get("/admin/sync", async (req, res) => {
   }
 });
 
+
+app.get("/refresh/:id", async (req, res) => {
+  const id = req.params.id;
+  let user = (await db.collection("usuarios").doc(id).get()).data();
+  res.status(200).json({ ...user, id });
+})
+
 // #endregion
 
 /**
@@ -243,6 +250,8 @@ app.post("/auth/registro", function (req, res) {
 // RECEPCION DE DATOS DE COMPRA
 app.post("/compra", function (req, res) {
   const { details, userId } = req.body;
+
+  console.log(details.id);
 
   const docRef = db.collection("facturas").doc(details.id);
   docRef.set({
