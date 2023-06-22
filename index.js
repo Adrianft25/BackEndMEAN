@@ -100,13 +100,39 @@ async function addStockCartas() {
 
 // Obtener cartas
 app.get("/cartas", async (req, res) => {
+  const page = parseInt(req.query.page) || 1; // Página actual
+  const limit = parseInt(req.query.limit) || 30; // Cantidad de elementos por página
+  
   if (cartas.length === 0) {
     const cartasTmp = (await yugiohApi.getAllCartas()).data;
     cartas = await mapeoStockCartas(cartasTmp);
   }
 
-  // ! TODO: datos temporales
-  res.send([...cartas].slice(15, 59) ?? []);
+  const numTotalPaginas = Math.ceil(cartas.length / limit);
+
+  // ❌🚪
+  if (cartas.length == 0){
+    res.status(200).json({ data: [], prevPag: null, nextPag: null, numPag: numTotalPaginas, count: null, countTotalCartas: cartas.length });
+    return;
+  }
+
+  // ❌🚪
+  if (page < 1) {
+    res.status(200).json({ data: [], prevPag: null, nextPag: 1, numPag: numTotalPaginas, count: null, countTotalCartas: cartas.length });
+    return;
+  }
+
+  // ❌🚪
+  if (page > numTotalPaginas) {
+    res.status(200).json({ data: [], prevPag: numTotalPaginas, nextPag: null, numPag: numTotalPaginas, count: null, countTotalCartas: cartas.length });
+    return;
+  }
+
+  // ✅
+  const prevPag = (page == 1) ? null : page - 1;
+  const nextPag = (page == numTotalPaginas) ? null : page + 1;
+  const data = cartas.slice((page - 1) * limit, page * limit);
+  res.status(200).json({ data, prevPag, nextPag, numPag: numTotalPaginas, count: data.length, countTotalCartas: cartas.length });
 });
 
 // Añadir a cada carta su stock almacenado en el JSON
