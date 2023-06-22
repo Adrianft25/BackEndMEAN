@@ -139,6 +139,7 @@ app.get("/cartas", async (req, res) => {
 async function mapeoStockCartas(cartasTmp) {
   const cartasIdStockJSON = fs.readFileSync(ARCHIVO_CARTAS_STOCK_ID, "utf-8");
   let cartasIdStock = JSON.parse(cartasIdStockJSON);
+
   cartasTmp = cartasTmp.map((carta) => {
     const cartaStockIndex = cartasIdStock.findIndex((c) => c.id == carta.id);
     if (cartaStockIndex > -1) {
@@ -147,6 +148,10 @@ async function mapeoStockCartas(cartasTmp) {
       return { ...carta, stock: stockCarta.stock };
     }
   });
+
+  // Eliminar cualquier valor null del arreglo cartasTmp
+  cartasTmp = cartasTmp.filter((carta) => carta);
+
   return cartasTmp;
 }
 
